@@ -350,11 +350,25 @@ $conn->close();
             .controls-bar { flex-direction: column; align-items: stretch; }
             .search-input { max-width: 100%; }
         }
+
+        /* Mobile: Convert user table to stacked cards and increase touch targets */
+        @media (max-width: 600px) {
+            .styled-table { min-width: 0; }
+            .styled-table thead { display: none; }
+            .styled-table, .styled-table tbody, .styled-table tr, .styled-table td { display: block; width: 100%; }
+            .styled-table tr { margin-bottom: 14px; background: var(--glass-bg); padding: 16px; border-radius: 12px; box-shadow: var(--glass-shadow); }
+            .styled-table td { padding: 8px 0; border-bottom: none; position: relative; }
+            .styled-table td::before { content: attr(data-label); display: block; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+            .icon-btn { width: 44px; height: 44px; border-radius: 10px; }
+            .btn-add { width: 100%; padding: 12px 16px; }
+            .table-responsive { padding: 6px; }
+            .mobile-toggle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,0,0,0.03); }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation" aria-hidden="false">
         <div class="logo-area">
             <div class="logo-icon">AD</div>
             <div class="logo-text">Admin Panel</div>
@@ -386,9 +400,9 @@ $conn->close();
                 <h1>User Management</h1>
                 <p>Add, edit, or remove system access.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
-            </button>
+            </button> 
         </header>
 
         <div class="glass-card">
@@ -428,22 +442,22 @@ $conn->close();
                                 $role_class = ($user['role'] === 'admin') ? 'role-admin' : 'role-employee';
                             ?>
                                 <tr class="user-row" data-role="<?php echo $user['role']; ?>">
-                                    <td>
+                                    <td data-label="User Profile">
                                         <div class="user-cell">
                                             <div class="table-avatar"><?php echo $initials; ?></div>
                                             <div style="font-weight: 500;"><?php echo htmlspecialchars($user['full_name']); ?></div>
                                         </div>
                                     </td>
-                                    <td><?php echo htmlspecialchars($user['employee_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($user['job_title']); ?></td>
-                                    <td><?php echo htmlspecialchars($user['department']); ?></td>
-                                    <td>
+                                    <td data-label="Emp ID"><?php echo htmlspecialchars($user['employee_id']); ?></td>
+                                    <td data-label="Job Title"><?php echo htmlspecialchars($user['job_title']); ?></td>
+                                    <td data-label="Department"><?php echo htmlspecialchars($user['department']); ?></td>
+                                    <td data-label="Role">
                                         <span class="role-badge <?php echo $role_class; ?>"><?php echo ucfirst($user['role']); ?></span>
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <span style="font-size: 0.85rem; color: var(--success-color);"><span class="status-dot"></span>Active</span>
                                     </td>
-                                    <td>
+                                    <td data-label="Actions">
 <td>
     <div class="action-cell">
         <!-- Edit User -->
@@ -471,7 +485,7 @@ $conn->close();
     </div>
 </td>
                                     </td>
-                                </tr>
+                                </tr> 
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr><td colspan="7" style="text-align:center; padding: 30px;">No users found in database.</td></tr>
@@ -483,31 +497,64 @@ $conn->close();
     </main>
 
     <script>
-        // Sidebar Toggle
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+        (function(){
+            const sidebar = document.getElementById('sidebar');
+            const mobileToggle = document.getElementById('mobileToggle');
+            let lastFocusedElement = null;
+            function openSidebar(){ sidebar.classList.add('active'); sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); lastFocusedElement = document.activeElement; const firstLink = sidebar.querySelector('.nav-links a'); if(firstLink) firstLink.focus(); document.addEventListener('keydown', docKey); }
+            function closeSidebar(){ sidebar.classList.remove('active'); sidebar.setAttribute('aria-hidden','true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false'); if(lastFocusedElement && lastFocusedElement.focus) lastFocusedElement.focus(); document.removeEventListener('keydown', docKey); }
+            window.toggleSidebar = function(){ if(!sidebar) return; if(sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+            if(mobileToggle){ mobileToggle.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); window.toggleSidebar(); } }); }
+            function docKey(e){ if(e.key === 'Escape'){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); } }
+            document.querySelectorAll('.nav-links a').forEach(link => { link.addEventListener('click', function(){ if(window.innerWidth <= 768) closeSidebar(); }); });
+            window.addEventListener('resize', function(){ if(window.innerWidth > 768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); } else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); } });
 
-        // Client-side Search & Filter
-        function filterUsers() {
-            const searchText = document.getElementById('searchInput').value.toLowerCase();
-            const roleFilter = document.getElementById('roleFilter').value;
-            const rows = document.querySelectorAll('.user-row');
+            window.filterUsers = function(){ const searchText = document.getElementById('searchInput').value.toLowerCase(); const roleFilter = document.getElementById('roleFilter').value; const rows = document.querySelectorAll('.user-row'); rows.forEach(row => { const textContent = row.innerText.toLowerCase(); const userRole = row.getAttribute('data-role'); const matchesSearch = textContent.includes(searchText); const matchesRole = (roleFilter === 'all') || (userRole === roleFilter); if (matchesSearch && matchesRole) row.style.display = ''; else row.style.display = 'none'; }); }
+        })();
+    </script>
 
-            rows.forEach(row => {
-                const textContent = row.innerText.toLowerCase();
-                const userRole = row.getAttribute('data-role');
-                
-                const matchesSearch = textContent.includes(searchText);
-                const matchesRole = (roleFilter === 'all') || (userRole === roleFilter);
+    <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
 
-                if (matchesSearch && matchesRole) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>

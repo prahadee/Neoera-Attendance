@@ -193,6 +193,10 @@ $first_two_letters = strtoupper(substr($full_name ?? 'AD', 0, 2));
             border: none;
             color: var(--text-color);
             cursor: pointer;
+            padding: 8px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 8px;
         }
 
         /* Card + form styling */
@@ -302,7 +306,7 @@ $first_two_letters = strtoupper(substr($full_name ?? 'AD', 0, 2));
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-hidden="false" role="navigation">
         <div class="logo-area">
             <div class="logo-icon">AD</div>
             <div class="logo-text">Admin Panel</div>
@@ -334,7 +338,7 @@ $first_two_letters = strtoupper(substr($full_name ?? 'AD', 0, 2));
                 <h1>Add New User</h1>
                 <p>Create login and employee profile for a new member.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </header>
@@ -408,9 +412,57 @@ $first_two_letters = strtoupper(substr($full_name ?? 'AD', 0, 2));
     </main>
 
     <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
+
+      // initialize aria state based on viewport
+      if (sidebar) {
+        const hidden = window.innerWidth > 768 ? 'false' : 'true';
+        sidebar.setAttribute('aria-hidden', hidden);
+      }
+      if (mobileToggle) {
+        mobileToggle.setAttribute('aria-expanded', window.innerWidth > 768 ? 'true' : 'false');
+      }
+
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+        mobileToggle.addEventListener('click', function(){ window.toggleSidebar(); });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>
