@@ -1,0 +1,157 @@
+/* Linking to the root color variables from dashboard_style.css */
+
+body {
+    /* --- NEW BACKGROUND DESIGN --- */
+    background-color: #1a233a; 
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(200, 200, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(0, 123, 255, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, #1a233a 0%, #0f1628 100%);
+    /* --- END NEW BACKGROUND DESIGN --- */
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.login-container {
+    /* REDUCED WIDTH */
+    width: 95%;
+    max-width: 270px; /* Reduced from 320px */
+    
+    /* REDUCED PADDING */
+    background: var(--card-bg); 
+    padding: 18px; /* Reduced from 25px */
+    border-radius: 10px; /* Reduced radius */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+}
+
+/* Header Styling */
+header {
+    text-align: center;
+    margin-bottom: 18px; /* Reduced margin */
+    padding-bottom: 10px; /* Reduced padding */
+    border-bottom: 1px solid #eee;
+}
+
+header .logo-icon {
+    /* REDUCED ICON SIZE */
+    width: 40px; 
+    height: 40px;
+    line-height: 40px;
+    font-size: 1.2em; /* Reduced font size */
+    border-radius: 50%;
+    margin-bottom: 8px; /* Reduced margin */
+}
+
+header h1 {
+    /* REDUCED HEADING SIZE */
+    font-size: 1.3em; /* Reduced from 1.4em */
+    color: var(--sidebar-bg);
+    margin: 6px 0 4px;
+}
+
+header p {
+    /* REDUCED PARAGRAPH SIZE */
+    font-size: 0.75em; /* Reduced from 0.85em */
+    color: #888;
+    margin: 0;
+}
+
+/* Form Styling */
+.input-group {
+    margin-bottom: 10px; /* Reduced margin */
+}
+
+.input-group label {
+    font-weight: 600;
+    margin-bottom: 4px; /* Reduced margin */
+    color: #555;
+    font-size: 0.85em; /* Reduced font size */
+}
+
+.input-group input[type="text"],
+.input-group input[type="password"],
+.input-group select {
+    width: 100%;
+    /* REDUCED INPUT HEIGHT */
+    padding: 8px; /* Reduced from 10px */
+    border: 1px solid #ddd;
+    border-radius: 5px; /* Reduced radius */
+    font-size: 0.9em; /* Reduced font size */
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+/* Login Button Styling */
+.login-btn {
+    width: 100%;
+    /* REDUCED BUTTON HEIGHT/PADDING */
+    padding: 8px; /* Reduced from 10px */
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px; /* Reduced radius */
+    font-size: 0.95em; /* Reduced font size */
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.login-btn .arrow-icon {
+    font-size: 1em; /* Reduced font size */
+    margin-left: 6px; /* Reduced margin */
+}
+
+/* Error Message */
+.error-message {
+    background-color: #fcebeb;
+    color: #cc0000;
+    /* REDUCED PADDING */
+    padding: 6px; /* Reduced from 8px */
+    margin-top: 10px; /* Reduced margin */
+    border-radius: 5px;
+    border: 1px solid #e6a7a7;
+    font-size: 0.8em; /* Reduced font size */
+    text-align: center;
+}
+
+/* Footer Links */
+footer {
+    text-align: center;
+    margin-top: 15px; /* Reduced margin */
+    font-size: 0.75em; /* Reduced from 0.8em */
+    color: #999;
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+footer span {
+    margin: 0 4px; /* Reduced margin */
+}

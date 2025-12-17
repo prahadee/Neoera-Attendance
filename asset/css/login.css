@@ -1,0 +1,258 @@
+
+        /* --- NEW LIGHT THEME VARIABLES --- */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #d19931ff 0%, #c38728ff 100%);
+            /* Glass BG is now a more opaque white to stand out on light bg */
+            --glass-bg: rgba(255, 255, 255, 0.85); 
+            --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+            /* Shadow changed to be softer for light mode */
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --text-color: #333333; /* Dark text */
+            --text-muted: #666666;
+            /* Inputs are now whitish */
+            --input-bg: rgba(240, 242, 245, 0.8);
+            --input-border: 1px solid rgba(0, 0, 0, 0.1);
+            --input-icon-color: #999;
+            --error-color: #ff4d4d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* --- NEW CLEAN LIGHT BACKGROUND GRADIENT --- */
+            background: linear-gradient(to right, #e0eafc, #cfdef3); 
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        /* Glassmorphism Card */
+        .login-wrapper {
+            width: 100%;
+            max-width: 400px;
+            background: var(--glass-bg);
+            /* Increased blur for better separation on light BG */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Circles - kept for style but made subtle */
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-area {
+            width: 70px;
+            height: 70px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white; /* Logo icon text remains white */
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            color: var(--text-color);
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Input Styling */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-left: 5px;
+            color: var(--text-color);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--input-icon-color); /* Darker icons */
+            font-size: 1rem;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px 12px 45px; /* Space for icon */
+            background: var(--input-bg);
+            border: var(--input-border);
+            border-radius: 10px;
+            color: var(--text-color); /* Dark text in inputs */
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+            appearance: none; 
+        }
+        
+        /* Placeholder color for light theme */
+        ::placeholder { 
+            color: #a0aec0; 
+            opacity: 1; 
+        }
+
+        /* Custom Arrow for Select */
+        .select-wrapper::after {
+            content: '\f107'; /* FontAwesome Down Arrow */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--input-icon-color);
+            pointer-events: none;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            background: #fff;
+            border-color: #d19931ff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group input:focus + i {
+            color: #d19931ff;
+        }
+
+        .input-group select option {
+            background-color: #fff; 
+            color: var(--text-color);
+        }
+
+        /* Button Styling */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #d63031;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        footer a:hover {
+            color: #d19931ff;
+            text-decoration: underline;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 30px 20px;
+            }
+            header h1 {
+                font-size: 1.3rem;
+            }
+        }
