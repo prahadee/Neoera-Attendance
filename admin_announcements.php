@@ -338,11 +338,20 @@ $conn->close();
             .mobile-toggle { display: block; }
             .form-row { flex-direction: column; gap: 0; }
         }
+
+        /* Mobile: Improve history list spacing and touch targets */
+        @media (max-width: 600px) {
+            .history-item { padding: 14px; background: var(--glass-bg); border-radius: 10px; margin-bottom: 10px; box-shadow: var(--glass-shadow); }
+            .history-meta { flex-direction: column; gap: 8px; }
+            .btn-publish { width: 100%; padding: 12px 16px; }
+            .mobile-toggle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,0,0,0.03); }
+            .table-responsive { padding: 6px; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation" aria-hidden="false">
         <div class="logo-area">
             <div class="logo-icon">AD</div>
             <div class="logo-text">Admin Panel</div>
@@ -374,9 +383,9 @@ $conn->close();
                 <h1>Announcements</h1>
                 <p>Broadcast messages to your team.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
-            </button>
+            </button> 
         </header>
 
         <?php if (!empty($submission_message)): ?>
@@ -466,6 +475,66 @@ $conn->close();
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
         }
+
+        // Close sidebar when a nav link is clicked on mobile
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            });
+        });
+
+        // Ensure sidebar is in correct state after resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        });
+    </script>
+
+    <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
+
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>

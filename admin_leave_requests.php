@@ -324,11 +324,31 @@ $conn->close();
             .filter-group { flex-direction: column; width: 100%; }
             .filter-select { width: 100%; }
         }
+
+        /* Mobile: Convert table to stacked cards for better readability */
+        @media (max-width: 600px) {
+            .styled-table { min-width: 0; }
+            .styled-table thead { display: none; }
+            .styled-table, .styled-table tbody, .styled-table tr, .styled-table td { display: block; width: 100%; }
+            .styled-table tr { margin-bottom: 14px; background: var(--glass-bg); padding: 16px; border-radius: 12px; box-shadow: var(--glass-shadow); }
+            .styled-table td { padding: 8px 0; border-bottom: none; position: relative; }
+            .styled-table td::before {
+                content: attr(data-label);
+                display: block;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 6px;
+            }
+            .action-cell { justify-content: flex-start; gap: 10px; flex-wrap: wrap; }
+            .icon-btn { width: 44px; height: 44px; border-radius: 10px; }
+            .btn-report { width: 100%; padding: 12px 16px; font-size: 0.95rem; }
+            .table-responsive { padding: 6px; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation" aria-hidden="false">
         <div class="logo-area">
             <div class="logo-icon">AD</div>
             <div class="logo-text">Admin Panel</div>
@@ -360,9 +380,9 @@ $conn->close();
                 <h1>Leave Requests</h1>
                 <p>Approve or reject employee time off.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
-            </button>
+            </button> 
         </header>
 
         <div class="glass-card">
@@ -389,7 +409,7 @@ $conn->close();
             </div>
 
             <div class="table-responsive">
-                <table class="styled-table" id="leaveTable">
+                <table class="styled-table leave-requests-table" id="leaveTable">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -413,26 +433,27 @@ $conn->close();
                                 $is_pending = (strtolower($req['status']) === 'pending');
                             ?>
                                 <tr class="request-row" 
+                                    data-request-id="<?php echo $req['request_id']; ?>"
                                     data-status="<?php echo strtolower($req['status']); ?>" 
                                     data-type="<?php echo strtolower($req['leave_type']); ?>">
                                     
-                                    <td>#<?php echo $req['request_id']; ?></td>
-                                    <td style="font-weight: 500;"><?php echo htmlspecialchars($req['full_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($req['leave_type']); ?></td>
-                                    <td><?php echo date('M j, Y', strtotime($req['start_date'])); ?></td>
-                                    <td><?php echo $req['total_days']; ?></td>
-                                    <td title="<?php echo htmlspecialchars($req['reason']); ?>">
+                                    <td data-label="ID">#<?php echo $req['request_id']; ?></td>
+                                    <td data-label="Employee" style="font-weight: 500;"><?php echo htmlspecialchars($req['full_name']); ?></td>
+                                    <td data-label="Type"><?php echo htmlspecialchars($req['leave_type']); ?></td>
+                                    <td data-label="Date"><?php echo date('M j, Y', strtotime($req['start_date'])); ?></td>
+                                    <td data-label="Days"><?php echo $req['total_days']; ?></td>
+                                    <td data-label="Reason" title="<?php echo htmlspecialchars($req['reason']); ?>">
                                         <?php echo substr(htmlspecialchars($req['reason']), 0, 25) . '...'; ?>
                                     </td>
-                                    <td><span class="status-badge <?php echo $status_class; ?>"><?php echo ucfirst($req['status']); ?></span></td>
+                                    <td data-label="Status"><span class="status-badge <?php echo $status_class; ?>"><?php echo ucfirst($req['status']); ?></span></td>
                                     
-                                    <td>
+                                    <td class="action-buttons-cell" data-label="Actions">
                                         <?php if ($is_pending): ?>
                                             <div class="action-cell">
-                                                <button class="icon-btn btn-approve" onclick="alert('Approved Request #<?php echo $req['request_id']; ?>')" title="Approve">
+                                                <button type="button" class="icon-btn btn-approve" data-action="approve" data-request-id="<?php echo $req['request_id']; ?>" title="Approve" aria-label="Approve request <?php echo $req['request_id']; ?>">
                                                     <i class="fa-solid fa-check"></i>
                                                 </button>
-                                                <button class="icon-btn btn-reject" onclick="alert('Rejected Request #<?php echo $req['request_id']; ?>')" title="Reject">
+                                                <button type="button" class="icon-btn btn-reject" data-action="reject" data-request-id="<?php echo $req['request_id']; ?>" title="Reject" aria-label="Reject request <?php echo $req['request_id']; ?>">
                                                     <i class="fa-solid fa-xmark"></i>
                                                 </button>
                                             </div>
@@ -452,32 +473,82 @@ $conn->close();
     </main>
 
     <script>
-        // Sidebar Toggle
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+        (function(){
+            const sidebar = document.getElementById('sidebar');
+            const mobileToggle = document.getElementById('mobileToggle');
+            let lastFocusedElement = null;
 
-        // Client-side Filtering
-        function filterRequests() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const typeFilter = document.getElementById('typeFilter').value;
-            const rows = document.querySelectorAll('.request-row');
+            function openSidebar(){ sidebar.classList.add('active'); sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); lastFocusedElement = document.activeElement; const firstLink = sidebar.querySelector('.nav-links a'); if(firstLink) firstLink.focus(); document.addEventListener('keydown', docKey); }
+            function closeSidebar(){ sidebar.classList.remove('active'); sidebar.setAttribute('aria-hidden','true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false'); if(lastFocusedElement && lastFocusedElement.focus) lastFocusedElement.focus(); document.removeEventListener('keydown', docKey); }
+            window.toggleSidebar = function(){ if(!sidebar) return; if(sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+            if(mobileToggle){ mobileToggle.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); window.toggleSidebar(); } }); }
+            function docKey(e){ if(e.key === 'Escape'){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); } }
 
-            rows.forEach(row => {
-                const status = row.getAttribute('data-status');
-                const type = row.getAttribute('data-type');
-                
-                // Flexible type matching (e.g., 'annual' matches 'Annual Leave')
-                const matchStatus = (statusFilter === 'all') || (status === statusFilter);
-                const matchType = (typeFilter === 'all') || type.includes(typeFilter);
+            document.querySelectorAll('.nav-links a').forEach(link => { link.addEventListener('click', function(){ if(window.innerWidth <= 768) closeSidebar(); }); });
+            window.addEventListener('resize', function(){ if(window.innerWidth > 768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); } else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); } });
 
-                if (matchStatus && matchType) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
+            // Client-side Filtering
+            window.filterRequests = function() {
+                const statusFilter = document.getElementById('statusFilter').value;
+                const typeFilter = document.getElementById('typeFilter').value;
+                const rows = document.querySelectorAll('.request-row');
+
+                rows.forEach(row => {
+                    const status = row.getAttribute('data-status');
+                    const type = row.getAttribute('data-type');
+                    const matchStatus = (statusFilter === 'all') || (status === statusFilter);
+                    const matchType = (typeFilter === 'all') || type.includes(typeFilter);
+
+                    if (matchStatus && matchType) row.style.display = ''; else row.style.display = 'none';
+                });
+            }
+        })();
+    </script>
+
+    <script src="asset/js/admin_script.js"></script>
+
+    <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
+
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>

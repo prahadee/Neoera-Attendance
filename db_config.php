@@ -4,7 +4,7 @@
 define('DB_SERVER', 'localhost'); // Force IPv4 loopback
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
-define('DB_NAME', 'attendance_2');
+define('DB_NAME', 'atendance');
  // <--- NEW PORT DEFINITION
 
 /* The mysqli constructor takes 5 parameters:

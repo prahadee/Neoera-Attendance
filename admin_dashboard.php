@@ -228,6 +228,10 @@ $conn->close();
             border: none;
             color: var(--text-color);
             cursor: pointer;
+            padding: 8px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 8px;
         }
 
         /* --- ADMIN WIDGETS --- */
@@ -361,11 +365,26 @@ $conn->close();
             .mobile-toggle { display: block; }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
+
+        /* Small screen: table -> stacked cards */
+        @media (max-width: 600px) {
+            .styled-table,
+            .styled-table thead,
+            .styled-table tbody,
+            .styled-table th,
+            .styled-table td,
+            .styled-table tr { display: block; width: 100%; }
+            .styled-table thead { display: none; }
+            .styled-table tr { margin-bottom: 16px; background: var(--glass-bg); border-radius: 12px; padding: 12px; box-shadow: var(--glass-shadow); }
+            .styled-table td { padding: 8px 12px; border-bottom: none; position: relative; }
+            .styled-table td::before { content: attr(data-label); display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+            .action-btn { min-width: 44px; padding: 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-hidden="false" role="navigation">
         <div class="logo-area">
             <div class="logo-icon">AD</div>
             <div class="logo-text">Admin Panel</div>
@@ -397,7 +416,7 @@ $conn->close();
                 <h1>Admin Control Center</h1>
                 <p>Welcome back, Admin.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </header>
@@ -456,7 +475,7 @@ $conn->close();
                                     $initials = strtoupper(substr($leave['full_name'], 0, 2));
                                 ?>
                                     <tr>
-                                        <td>
+                                        <td data-label="Employee">
                                             <div style="display:flex; align-items:center; gap:10px;">
                                                 <div style="width:30px; height:30px; background:#667eea; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">
                                                     <?php echo htmlspecialchars($initials); ?>
@@ -464,9 +483,9 @@ $conn->close();
                                                 <span><?php echo htmlspecialchars($leave['full_name']); ?></span>
                                             </div>
                                         </td>
-                                        <td><?php echo htmlspecialchars(ucfirst($leave['leave_type'])); ?></td>
-                                        <td><?php echo htmlspecialchars($leave['total_days']) . ' days'; ?></td>
-                                        <td><button class="action-btn" onclick="window.location.href='admin_leave_requests.php'">Review</button></td>
+                                        <td data-label="Type"><?php echo htmlspecialchars(ucfirst($leave['leave_type'])); ?></td>
+                                        <td data-label="Duration"><?php echo htmlspecialchars($leave['total_days']) . ' days'; ?></td>
+                                        <td data-label="Action"><button class="action-btn" onclick="window.location.href='admin_leave_requests.php'">Review</button></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -512,9 +531,57 @@ $conn->close();
     </main>
 
     <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
+
+      // initialize aria state based on viewport
+      if (sidebar) {
+        const hidden = window.innerWidth > 768 ? 'false' : 'true';
+        sidebar.setAttribute('aria-hidden', hidden);
+      }
+      if (mobileToggle) {
+        mobileToggle.setAttribute('aria-expanded', window.innerWidth > 768 ? 'true' : 'false');
+      }
+
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+        mobileToggle.addEventListener('click', function(){ window.toggleSidebar(); });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>

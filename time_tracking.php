@@ -358,12 +358,36 @@ $conn->close();
             .mobile-toggle { display: block; }
             .log-controls { flex-direction: column; align-items: flex-start; }
             .download-btn { width: 100%; }
+            .stat-card { gap: 12px; padding: 16px; }
+            .stat-icon { width: 50px; height: 50px; }
+        }
+
+        /* Mobile: Convert table to stacked cards for better readability */
+        @media (max-width: 600px) {
+            .styled-table { min-width: 0; }
+            .styled-table thead { display: none; }
+            .styled-table, .styled-table tbody, .styled-table tr, .styled-table td { display: block; width: 100%; }
+            .styled-table tr { margin-bottom: 14px; background: var(--glass-bg); padding: 16px; border-radius: 12px; box-shadow: var(--glass-shadow); }
+            .styled-table td { padding: 8px 0; border-bottom: none; position: relative; }
+            .styled-table td::before {
+                content: attr(data-label);
+                display: block;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 6px;
+            }
+            .styled-table td .status-badge { margin-top: 6px; font-size: 0.9rem; }
+
+            /* Make controls and buttons easier to tap */
+            .mobile-toggle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(0,0,0,0.03); }
+            .download-btn { width: 100%; padding: 12px 16px; font-size: 0.95rem; }
+            .table-responsive { padding: 6px; }
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation" aria-hidden="false">
         <div class="logo-area">
             <div class="logo-icon">NE</div>
             <div class="logo-text">NeoEra Portal</div>
@@ -395,9 +419,9 @@ $conn->close();
             <div class="page-title">
                 <h1>Attendance History</h1>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
+            <button id="mobileToggle" class="mobile-toggle" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation" onclick="toggleSidebar()">
                 <i class="fa-solid fa-bars"></i>
-            </button>
+            </button> 
         </header>
 
         <div class="stats-grid">
@@ -468,11 +492,11 @@ $conn->close();
                                 }
                             ?>
                                 <tr class="log-row">
-                                    <td><?php echo $in_time->format('M d, Y'); ?></td>
-                                    <td><i class="fa-regular fa-clock" style="color: #d19931ff; margin-right:5px;"></i> <?php echo $in_time->format('h:i A'); ?></td>
-                                    <td><?php echo $out_time ? $out_time->format('h:i A') : '-'; ?></td>
-                                    <td style="font-weight: 500;"><?php echo $duration; ?></td>
-                                    <td><span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
+                                    <td data-label="Date"><?php echo $in_time->format('M d, Y'); ?></td>
+                                    <td data-label="Check In"><i class="fa-regular fa-clock" style="color: #d19931ff; margin-right:5px;"></i> <?php echo $in_time->format('h:i A'); ?></td>
+                                    <td data-label="Check Out"><?php echo $out_time ? $out_time->format('h:i A') : '-'; ?></td>
+                                    <td data-label="Total Duration" style="font-weight: 500;"><?php echo $duration; ?></td>
+                                    <td data-label="Status"><span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -511,6 +535,66 @@ $conn->close();
                 }
             });
         });
+
+        // Close sidebar when a nav link is clicked on mobile
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            });
+        });
+
+        // Ensure sidebar is in correct state after resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        });
+    </script>
+
+    <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const mobileToggle = document.getElementById('mobileToggle');
+      let lastFocused = null;
+
+      function openSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.add('active');
+        sidebar.setAttribute('aria-hidden','false');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true');
+        lastFocused = document.activeElement;
+        const first = sidebar.querySelector('.nav-links a, button, [href]');
+        if(first) first.focus();
+        document.addEventListener('keydown', onKeyDown);
+      }
+
+      function closeSidebar(){
+        if(!sidebar) return;
+        sidebar.classList.remove('active');
+        sidebar.setAttribute('aria-hidden','true');
+        if(mobileToggle) mobileToggle.setAttribute('aria-expanded','false');
+        if(lastFocused && lastFocused.focus) lastFocused.focus();
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      window.toggleSidebar = function(){ if(sidebar && sidebar.classList.contains('active')) closeSidebar(); else openSidebar(); };
+
+      if(mobileToggle){
+        mobileToggle.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); window.toggleSidebar(); } });
+      }
+
+      function onKeyDown(e){ if(e.key==='Escape'){ closeSidebar(); } }
+
+      document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=>{ if(window.innerWidth<=768) closeSidebar(); }));
+
+      window.addEventListener('resize', ()=>{
+        if(!sidebar) return;
+        if(window.innerWidth>768){ sidebar.setAttribute('aria-hidden','false'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded','true'); sidebar.classList.remove('active'); }
+        else { sidebar.setAttribute('aria-hidden', sidebar.classList.contains('active') ? 'false' : 'true'); if(mobileToggle) mobileToggle.setAttribute('aria-expanded', sidebar.classList.contains('active') ? 'true' : 'false'); }
+      });
+    })();
     </script>
 </body>
 </html>
