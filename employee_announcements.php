@@ -66,17 +66,22 @@ $conn->close();
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
+        html, body { height: 100%; }
         body {
             background: linear-gradient(to right, #f3f4f6, #e5e7eb);
             color: var(--text-color);
             min-height: 100vh;
             display: flex;
+            overflow-x: hidden;
         }
+
+        /* Prevent scrolling when sidebar is open */
+        body.no-scroll { overflow: hidden; }
 
         /* --- SIDEBAR --- */
         .sidebar {
             width: var(--sidebar-width);
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
             border-right: var(--glass-border);
             height: 100vh;
@@ -86,252 +91,162 @@ $conn->close();
             z-index: 100;
             display: flex;
             flex-direction: column;
-            transition: 0.3s ease;
+            transition: transform 0.3s ease;
             box-shadow: var(--glass-shadow);
         }
 
-        .logo-area { padding: 30px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .logo-icon { width: 40px; height: 40px; background: var(--primary-gradient); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; color: white; }
-        .logo-text { font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; color: var(--text-color); }
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; }
+        .sidebar.active + .sidebar-backdrop { display: block; }
+        .sidebar-backdrop.active { display: block; }
 
-        .nav-links { padding: 20px 0; flex: 1; }
+        .logo-area { padding: 24px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary-gradient); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; color: white; }
+        .logo-text { font-size: 1.05rem; font-weight: 600; letter-spacing: 0.5px; color: var(--text-color); }
+
+        .nav-links { padding: 18px 0; flex: 1; overflow-y: auto; }
         .nav-links ul { list-style: none; }
-        .nav-links li a { display: flex; align-items: center; gap: 15px; padding: 15px 25px; color: var(--text-muted); text-decoration: none; transition: 0.3s; border-left: 3px solid transparent; font-weight: 500; }
-        .nav-links li a:hover, .nav-links li.active a { background: rgba(102, 126, 234, 0.1); color: #d19931ff; border-left: 3px solid #d19931ff; }
+        .nav-links li a { display: flex; align-items: center; gap: 15px; padding: 12px 20px; color: var(--text-muted); text-decoration: none; transition: 0.3s; border-left: 3px solid transparent; font-weight: 500; }
+        .nav-links li a:hover, .nav-links li.active a { background: rgba(102, 126, 234, 0.06); color: #d19931ff; border-left: 3px solid #d19931ff; }
         .nav-links i { width: 20px; text-align: center; }
 
-        .user-profile-mini { padding: 20px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.5); }
+        .user-profile-mini { padding: 14px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.5); }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-gradient); color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; }
 
         /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 30px; transition: 0.3s ease; }
-        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .page-title h1 { font-size: 1.8rem; font-weight: 600; color: var(--text-color); }
-        .page-title p { color: var(--text-muted); }
-        .mobile-toggle { display: none; font-size: 1.5rem; background: none; border: none; color: var(--text-color); cursor: pointer; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 30px; transition: margin-left 0.3s ease; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 12px; }
+        .page-title h1 { font-size: 1.6rem; font-weight: 600; color: var(--text-color); }
+        .page-title p { color: var(--text-muted); font-size: 0.95rem; }
+        .mobile-toggle { display: none; font-size: 1.4rem; background: none; border: none; color: var(--text-color); cursor: pointer; }
 
         /* --- SEARCH BAR --- */
         .controls-bar {
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
         }
         .search-wrapper {
             position: relative;
             width: 100%;
-            max-width: 400px;
+            max-width: 480px;
         }
         .search-wrapper input {
             width: 100%;
-            padding: 12px 20px 12px 45px;
-            border-radius: 50px;
-            border: 1px solid rgba(0,0,0,0.1);
+            padding: 10px 16px 10px 44px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,0,0,0.08);
             background: var(--glass-bg);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             outline: none;
-            transition: 0.3s;
+            transition: 0.2s;
             box-shadow: var(--glass-shadow);
+            font-size: 0.95rem;
         }
         .search-wrapper input:focus {
             background: white;
             border-color: #d19931ff;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.12);
         }
         .search-wrapper i {
             position: absolute;
-            left: 18px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
+            font-size: 0.95rem;
         }
 
         /* --- NEWS CARDS --- */
         .news-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
         }
 
         .news-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 20px;
             box-shadow: var(--glass-shadow);
             position: relative;
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.25s, box-shadow 0.25s;
             display: flex;
             flex-direction: column;
             height: 100%;
         }
 
-        .news-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
+        .news-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
 
         /* Priority Styling */
-        .priority-stripe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-        }
+        .priority-stripe { position: absolute; top: 0; left: 0; width: 6px; height: 100%; }
         .priority-high { background: var(--danger-color); }
         .priority-normal { background: #d19931ff; }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            padding-left: 10px; /* Space for stripe */
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-left: 10px; }
 
         .badges { display: flex; gap: 8px; flex-wrap: wrap; }
-        
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .badge-red { background: rgba(255, 118, 117, 0.15); color: var(--danger-color); }
-        .badge-blue { background: rgba(102, 126, 234, 0.15); color: #d19931ff; }
-        .badge-new { background: rgba(0, 184, 148, 0.15); color: #00b894; }
+        .badge-blue { background: rgba(102, 126, 234, 0.12); color: #d19931ff; }
+        .badge-new { background: rgba(0, 184, 148, 0.12); color: #00b894; }
 
-        .news-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-bottom: 8px;
-            padding-left: 10px;
-            line-height: 1.4;
-        }
+        .news-title { font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px; padding-left: 10px; line-height: 1.3; }
 
-        .news-meta {
-            padding-left: 10px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            display: flex;
-            gap: 15px;
-        }
-        .news-meta i { margin-right: 5px; color: #d19931ff; }
+        .news-meta { padding-left: 10px; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; display: flex; gap: 12px; }
+        .news-meta i { margin-right: 6px; color: #d19931ff; }
 
-        .news-preview {
-            padding-left: 10px;
-            font-size: 0.9rem;
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            flex-grow: 1; /* Pushes button to bottom */
-            display: -webkit-box;
-            -webkit-line-clamp: 3; /* Limit lines */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .news-preview { padding-left: 10px; font-size: 0.92rem; color: #555; line-height: 1.6; margin-bottom: 16px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        .read-btn {
-            margin-left: 10px;
-            padding: 10px 20px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            color: #d19931ff;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            align-self: flex-start;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .read-btn:hover {
-            background: #d19931ff;
-            color: white;
-            border-color: #d19931ff;
-        }
+        .read-btn { margin-left: 10px; padding: 10px 18px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; color: #d19931ff; font-weight: 600; cursor: pointer; transition: 0.2s; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; }
+        .read-btn:hover { background: #d19931ff; color: white; border-color: #d19931ff; }
 
         /* --- MODAL --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .modal-content {
-            background: white;
-            width: 100%;
-            max-width: 600px;
-            border-radius: 20px;
-            padding: 30px;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; width: 100%; max-width: 680px; border-radius: 18px; padding: 28px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.18); animation: slideUp 0.28s ease; max-height: 90vh; overflow-y: auto; }
 
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f1f2f6;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: #555;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: 0.2s;
-        }
+        .close-modal { position: absolute; top: 16px; right: 16px; background: #f1f2f6; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.1rem; color: #555; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
         .close-modal:hover { background: #ff7675; color: white; }
 
-        .modal-body-text {
-            font-size: 1rem;
-            line-height: 1.8;
-            color: #333;
-            margin-top: 20px;
-            white-space: pre-wrap; /* Keeps formatting */
+        .modal-body-text { font-size: 1rem; line-height: 1.8; color: #333; margin-top: 20px; white-space: pre-wrap; }
+
+        /* Responsive tweaks */
+        @media (max-width: 992px) {
+            .main-content { padding: 20px; }
+            .search-wrapper { max-width: 360px; }
+            .news-grid { gap: 18px; }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
+            .sidebar { transform: translateX(-110%); }
             .sidebar.active { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 20px; }
+            .sidebar.active + .sidebar-backdrop { display: block; }
+            .main-content { margin-left: 0; padding: 18px; }
             .mobile-toggle { display: block; }
             .news-grid { grid-template-columns: 1fr; }
+            .page-title h1 { font-size: 1.3rem; }
+            .controls-bar { flex-direction: column; align-items: stretch; gap: 12px; }
+            .read-btn { width: 100%; justify-content: center; }
+            .news-card { padding: 16px; border-radius: 12px; }
+            .modal-content { max-width: 95%; padding: 18px; }
+        }
+
+        @media (max-width: 420px) {
+            .search-wrapper input { padding-left: 40px; font-size: 0.9rem; }
+            .page-title p { font-size: 0.9rem; }
+            .logo-area { padding: 18px; }
+            .nav-links li a { padding: 10px 14px; }
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" role="navigation" aria-hidden="false">
         <div class="logo-area">
             <div class="logo-icon">NE</div>
             <div class="logo-text">NeoEra Portal</div>
@@ -355,6 +270,7 @@ $conn->close();
             </div>
         </div>
     </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
     <main class="main-content">
         <header class="top-header">
@@ -362,8 +278,8 @@ $conn->close();
                 <h1>Company News</h1>
                 <p>Stay updated with the latest team alerts.</p>
             </div>
-            <button class="mobile-toggle" onclick="toggleSidebar()">
-                <i class="fa-solid fa-bars"></i>
+            <button class="mobile-toggle" onclick="toggleSidebar()" aria-controls="sidebar" aria-expanded="false" id="mobileToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
         </header>
 
@@ -420,9 +336,9 @@ $conn->close();
         </div>
     </main>
 
-    <div class="modal-overlay" id="newsModal">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeModal()"><i class="fa-solid fa-times"></i></button>
+    <div class="modal-overlay" id="newsModal" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <button class="close-modal" onclick="closeModal()" aria-label="Close modal"><i class="fa-solid fa-times" aria-hidden="true"></i></button>
             
             <div style="margin-bottom: 15px;">
                 <span id="modalBadge" class="badge badge-blue">NORMAL</span>
@@ -437,8 +353,24 @@ $conn->close();
     </div>
 
     <script>
+        let sidebarLastFocused;
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const toggleBtn = document.getElementById('mobileToggle');
+            const isActive = sidebar.classList.toggle('active');
+            if (backdrop) backdrop.classList.toggle('active', isActive);
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+            sidebar.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            document.body.classList.toggle('no-scroll', isActive);
+
+            if (isActive) {
+                sidebarLastFocused = document.activeElement;
+                const firstLink = sidebar.querySelector('a');
+                if (firstLink) firstLink.focus();
+            } else {
+                if (sidebarLastFocused) sidebarLastFocused.focus();
+            }
         }
 
         // Search Filter
@@ -465,7 +397,9 @@ $conn->close();
         const modalBadge = document.getElementById('modalBadge');
         const modalDate = document.getElementById('modalDate');
 
+        let modalLastFocused;
         function openModal(newsData) {
+            modalLastFocused = document.activeElement;
             modalTitle.innerText = newsData.title;
             modalBody.innerText = newsData.body; // Using innerText handles \n as line breaks
             
@@ -475,25 +409,62 @@ $conn->close();
 
             // Badge Style
             modalBadge.innerText = newsData.priority.toUpperCase();
-            if(newsData.priority === 'high') {
-                modalBadge.className = 'badge badge-red';
-            } else {
-                modalBadge.className = 'badge badge-blue';
-            }
+            modalBadge.className = (newsData.priority === 'high') ? 'badge badge-red' : 'badge badge-blue';
 
-            modal.style.display = 'flex';
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('no-scroll');
+            document.querySelector('main').setAttribute('aria-hidden', 'true');
+
+            const closeBtn = modal.querySelector('.close-modal');
+            if (closeBtn) closeBtn.focus();
         }
 
         function closeModal() {
-            modal.style.display = 'none';
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('no-scroll');
+            document.querySelector('main').removeAttribute('aria-hidden');
+            if (modalLastFocused) modalLastFocused.focus();
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            if (event.target == modal) {
+        // Close modal when clicking outside or pressing Escape
+        window.addEventListener('click', function(event) {
+            if (event.target === modal) {
                 closeModal();
             }
-        }
+        });
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (modal.classList.contains('active')) {
+                    closeModal();
+                    return;
+                }
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && sidebar.classList.contains('active')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Focus trap for modal when open
+        modal.addEventListener('keydown', function(e) {
+            if (!modal.classList.contains('active')) return;
+            const focusable = modal.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length -1];
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
     </script>
 </body>
 </html>
