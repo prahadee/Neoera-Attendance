@@ -231,7 +231,7 @@ $conn->close();
                     
                     <input type="text" id="employeeFilter" class="search-input" placeholder="Search by Employee..." onkeyup="filterLogs()">
                 </div>
-                <button class="btn-report" onclick="alert('Exporting data...')">
+                <button type="button" id="exportCsv" class="btn-report" onclick="exportLogsCSV()" aria-label="Export visible logs to CSV">
                     <i class="fa-solid fa-download"></i> Export CSV
                 </button>
             </div>
@@ -285,6 +285,8 @@ $conn->close();
             </div>
         </div>
     </main>
+
+<script src="asset/js/admin_script.js"></script>
 
 <script>
         function toggleSidebar() {
@@ -348,6 +350,106 @@ $conn->close();
                     document.getElementById('sidebar').classList.remove('active');
                 }
             });
+
+            // Export visible table rows to CSV
+            window.exportLogsCSV = function() {
+                const rows = Array.from(document.querySelectorAll('#logsTable tbody tr'));
+                const visible = rows.filter(r => window.getComputedStyle(r).display !== 'none');
+                if (visible.length === 0) {
+                    alert('No visible logs to export.');
+                    return;
+                }
+
+                const headers = ['Date','Emp ID','Name','Check In','Check Out','Hours','Status','Location','Lat','Lon'];
+                const escapeCell = (s) => {
+                    if (s == null) return '';
+                    const str = String(s).replace(/"/g, '""');
+                    return `"${str}"`;
+                };
+
+                const lines = [headers.map(escapeCell).join(',')];
+
+                visible.forEach(row => {
+                    const tds = row.querySelectorAll('td');
+                    if (tds.length < 8) return; // skip malformed rows
+                    const date = tds[0].innerText.trim();
+                    const emp = tds[1].innerText.trim();
+                    const name = tds[2].innerText.trim();
+                    const cin = tds[3].innerText.trim();
+                    const cout = tds[4].innerText.trim();
+                    const hours = tds[5].innerText.trim();
+                    const status = tds[6].innerText.trim();
+                    const locEl = tds[7].querySelector('.location-text');
+                    let locText = '';
+                    let lat = '';
+                    let lon = '';
+                    if (locEl) {
+                        locText = locEl.textContent.trim();
+                        lat = locEl.getAttribute('data-lat') || '';
+                        lon = locEl.getAttribute('data-lon') || '';
+                    }
+
+                    const rowArr = [date, emp, name, cin, cout, hours, status, locText, lat, lon];
+                    lines.push(rowArr.map(escapeCell).join(','));
+                });
+
+                const csvContent = lines.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+                a.href = url;
+                a.download = `time_logs_${ts}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            };
+
+            // Filter logs by date range and employee name
+            window.filterLogs = function(){
+                const start = document.getElementById('startDate').value;
+                const end = document.getElementById('endDate').value;
+                const empQ = document.getElementById('employeeFilter').value.trim().toLowerCase();
+                const rows = document.querySelectorAll('#logsTable tbody tr');
+
+                rows.forEach(r => {
+                    const tds = r.querySelectorAll('td');
+                    const dateText = tds[0].innerText.trim();
+                    // Parse readable date like 'Dec 17, 2025'
+                    const rowDate = new Date(dateText);
+                    let inRange = true;
+
+                    if (start) {
+                        const s = new Date(start + 'T00:00:00');
+                        if (rowDate < s) inRange = false;
+                    }
+                    if (end) {
+                        const e = new Date(end + 'T23:59:59');
+                        if (rowDate > e) inRange = false;
+                    }
+
+                    const name = tds[2].innerText.trim().toLowerCase();
+                    const matchesEmp = !empQ || name.includes(empQ);
+
+                    if (inRange && matchesEmp) {
+                        r.style.display = '';
+                    } else {
+                        r.style.display = 'none';
+                    }
+                });
+            };
+
+            // Wire date inputs to filter
+            const sInput = document.getElementById('startDate');
+            const eInput = document.getElementById('endDate');
+            const empInput = document.getElementById('employeeFilter');
+            if (sInput) sInput.addEventListener('change', window.filterLogs);
+            if (eInput) eInput.addEventListener('change', window.filterLogs);
+            if (empInput) empInput.addEventListener('input', window.filterLogs);
+
+            // Run initial filter to apply defaults
+            window.filterLogs();
         });
     </script>
 

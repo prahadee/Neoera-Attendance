@@ -14,12 +14,12 @@ $error_type = "";
 
 // Fetch Recent Announcements (Placeholder Query - Adapt to your DB)
 $announcement_history = [];
+$show_all = isset($_GET['all']) && $_GET['all'] === '1';
 $sql_history = "
-    SELECT title, target, priority, published_on, expiry_date 
-    FROM announcements 
-    ORDER BY published_on DESC 
-    LIMIT 5
-";
+    SELECT title, target, priority, published_on, expiry_date
+    FROM announcements
+    ORDER BY published_on DESC
+" . ($show_all ? "" : " LIMIT 5");
 
 $result = $conn->query($sql_history);
 if ($result && $result->num_rows > 0) {
@@ -441,8 +441,11 @@ $conn->close();
                 </form>
             </div>
 
-            <div class="glass-card">
-                <h3 style="margin-bottom: 20px; color: var(--text-color);">Recent History</h3>
+            <div class="glass-card" id="history">
+                <h3 style="margin-bottom: 12px; color: var(--text-color);">Recent History</h3>
+                <?php if (!empty($announcement_history) && isset($show_all) && $show_all): ?>
+                    <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">Showing all announcements (<?php echo count($announcement_history); ?>)</div>
+                <?php endif; ?>
                 
                 <?php if (empty($announcement_history)): ?>
                     <p style="color: var(--text-muted); text-align: center; margin-top: 40px;">No announcements posted yet.</p>
@@ -463,9 +466,15 @@ $conn->close();
                     </ul>
                 <?php endif; ?>
                 
-                <button onclick="alert('View Archive')" style="width:100%; padding:10px; margin-top:20px; background:transparent; border:1px solid #667eea; color:#667eea; border-radius:8px; cursor:pointer;">
-                    View All Archives
-                </button>
+                <?php if (isset($show_all) && $show_all): ?>
+                    <button type="button" onclick="window.location.href='admin_announcements.php#history'" style="width:100%; padding:10px; margin-top:20px; background:transparent; border:1px solid #667eea; color:#667eea; border-radius:8px; cursor:pointer;" aria-label="Hide archives">
+                        Hide Archives
+                    </button>
+                <?php else: ?>
+                    <button type="button" id="viewAllArchives" onclick="window.location.href='admin_announcements.php?all=1#history'" style="width:100%; padding:10px; margin-top:20px; background:transparent; border:1px solid #667eea; color:#667eea; border-radius:8px; cursor:pointer;" aria-label="View all archives">
+                        View All Archives
+                    </button>
+                <?php endif; ?>
             </div>
 
         </div>

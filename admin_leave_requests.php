@@ -403,7 +403,7 @@ $conn->close();
                         <option value="emergency">Emergency</option>
                     </select>
                 </div>
-                <button class="btn-report" onclick="alert('Exporting Leave History...')">
+                <button type="button" id="exportLeaves" class="btn-report" onclick="exportRequestsCSV()" aria-label="Export visible leave requests to CSV">
                     <i class="fa-solid fa-file-export"></i> Export Data
                 </button>
             </div>
@@ -502,6 +502,51 @@ $conn->close();
                     if (matchStatus && matchType) row.style.display = ''; else row.style.display = 'none';
                 });
             }
+
+            // Export visible leave requests to CSV
+            window.exportRequestsCSV = function() {
+                const rows = Array.from(document.querySelectorAll('#leaveTable tbody tr'));
+                const visible = rows.filter(r => window.getComputedStyle(r).display !== 'none');
+                if (visible.length === 0) {
+                    alert('No visible leave requests to export.');
+                    return;
+                }
+
+                const headers = ['Request ID','Employee','Type','Date','Days','Reason','Status'];
+                const escapeCell = (s) => {
+                    if (s == null) return '';
+                    const str = String(s).replace(/"/g, '""');
+                    return `"${str}"`;
+                };
+
+                const lines = [headers.map(escapeCell).join(',')];
+
+                visible.forEach(row => {
+                    const reqId = row.getAttribute('data-request-id') || '';
+                    const tds = row.querySelectorAll('td');
+                    const employee = tds[1] ? tds[1].innerText.trim() : '';
+                    const type = tds[2] ? tds[2].innerText.trim() : '';
+                    const date = tds[3] ? tds[3].innerText.trim() : '';
+                    const days = tds[4] ? tds[4].innerText.trim() : '';
+                    const reasonEl = tds[5];
+                    const reason = reasonEl ? (reasonEl.getAttribute('title') || reasonEl.innerText.trim()) : '';
+                    const status = tds[6] ? tds[6].innerText.trim() : '';
+
+                    lines.push([reqId, employee, type, date, days, reason, status].map(escapeCell).join(','));
+                });
+
+                const csvContent = lines.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+                a.href = url;
+                a.download = `leave_requests_${ts}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            };
         })();
     </script>
 
