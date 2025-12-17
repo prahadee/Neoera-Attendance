@@ -198,7 +198,7 @@ $conn->close();
         .news-meta { padding-left: 10px; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; display: flex; gap: 12px; }
         .news-meta i { margin-right: 6px; color: #d19931ff; }
 
-        .news-preview { padding-left: 10px; font-size: 0.92rem; color: #555; line-height: 1.6; margin-bottom: 16px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-preview { padding-left: 10px; font-size: 0.92rem; color: #555; line-height: 1.6; margin-bottom: 16px; flex-grow: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
 
         .read-btn { margin-left: 10px; padding: 10px 18px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; color: #d19931ff; font-weight: 600; cursor: pointer; transition: 0.2s; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; }
         .read-btn:hover { background: #d19931ff; color: white; border-color: #d19931ff; }
